@@ -70,19 +70,20 @@ class CodeSearchModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         code, comment = batch
         encoded_code, encoded_comment = self(code, comment)
-        scores = cosine_sim(encoded_comment, encoded_code)
+        scores = cosine_sim(encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
+        loss = loss.item()
         self.log('train_loss', loss)
         return loss
 
-    #def validation_step(self, batch, batch_idx):
-    #    code, comment = batch
-    #    encoded_code, encoded_comment = self(code, comment)
-    #    #scores = torch.einsum("ab,cb->ac", encoded_comment, encoded_code)
-    #    scores = cosine_sim(encoded_comment, encoded_code)
-    #    loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
-    #    self.log('val_loss', loss)
-    #    return loss
+    def validation_step(self, batch, batch_idx):
+        code, comment = batch
+        encoded_code, encoded_comment = self(code, comment)
+        scores = cosine_sim(encoded_code, encoded_comment)
+        loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
+        loss = loss.item()
+        self.log('val_loss', loss)
+        return loss
 
     def configure_optimizers(self):
         optimizer = optim.Adam(self.parameters(), lr=0.001)

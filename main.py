@@ -27,5 +27,7 @@ if __name__ == '__main__':
     valloader = DataLoader(val_dataset, batch_size=2, shuffle=False)
 
     # creating trainer
-    trainer = pl.Trainer(gpus=1, max_epochs=10)
-    trainer.fit(model, trainloader, val_dataset)
+    trainer = pl.Trainer(gpus=1,
+                         max_epochs=10,
+                         gradient_clip_val=0.5,)
+    trainer.fit(model, trainloader, valloader)
