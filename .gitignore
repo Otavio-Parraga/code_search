@@ -3,3 +3,4 @@ lightning_logs/
 *.ipynb
 .idea
 *__pycache__*
+__pycache__

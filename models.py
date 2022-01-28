@@ -72,7 +72,6 @@ class CodeSearchModel(pl.LightningModule):
         encoded_code, encoded_comment = self(code, comment)
         scores = cosine_sim(encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
-        loss = loss.item()
         self.log('train_loss', loss)
         return loss
 
@@ -81,10 +80,9 @@ class CodeSearchModel(pl.LightningModule):
         encoded_code, encoded_comment = self(code, comment)
         scores = cosine_sim(encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
-        loss = loss.item()
         self.log('val_loss', loss)
         return loss
 
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=0.001)
+        optimizer = optim.Adam(self.parameters(), lr=5e-5)
         return optimizer

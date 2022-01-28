@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-data', '--data_dir', type=str, default='datasets/Cleaned_CodeSearchNet/CodeSearchNet')
+    parser.add_argument('-data', '--data_dir', type=str, default='datasets/CodeSearchNet')
     parser.add_argument('-lan', '--language', type=str, default='javascript')
 
     # main configs
@@ -23,11 +23,12 @@ if __name__ == '__main__':
     # creating dataset
     train_dataset = CodeSearchNetDataset(data_dir / language / 'train.jsonl', model.tokenizer)
     val_dataset = CodeSearchNetDataset(data_dir / language / 'valid.jsonl', model.tokenizer)
-    trainloader = DataLoader(train_dataset, batch_size=2, shuffle=True)
-    valloader = DataLoader(val_dataset, batch_size=2, shuffle=False)
+    trainloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    valloader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
     # creating trainer
-    trainer = pl.Trainer(gpus=1,
+    trainer = pl.Trainer(gpus=3,
                          max_epochs=10,
-                         gradient_clip_val=0.5,)
+                         gradient_clip_val=0.5,
+                         strategy='ddp',)
     trainer.fit(model, trainloader, valloader)
