@@ -7,6 +7,8 @@ import torch
 from transformers import T5Model, RobertaTokenizer, AutoModel, AutoTokenizer
 from utils import cosine_sim
 
+# TODO: test without normalization
+
 mt_pairs = {'Salesforce/codet5-base': {'model': T5Model, 'tokenizer': RobertaTokenizer},
             'microsoft/codebert-base': {'model': AutoModel, 'tokenizer': AutoTokenizer},
             'microsoft/graphcodebert-base': {'model': AutoModel, 'tokenizer': AutoTokenizer}}
@@ -68,15 +70,16 @@ class CodeSearchModel(pl.LightningModule):
         return code, comment
 
     def training_step(self, batch, batch_idx):
-        code, comment = batch
+        code, comment, url = batch
         encoded_code, encoded_comment = self(code, comment)
+        # TODO: tentar fazer como os autores do codebert, usando o einsum
         scores = cosine_sim(encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        code, comment = batch
+        code, comment, url = batch
         encoded_code, encoded_comment = self(code, comment)
         scores = cosine_sim(encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))

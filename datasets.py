@@ -27,10 +27,11 @@ class CodeSearchNetDataset(Dataset):
         instance = self.data[idx]
         code = instance["code"]
         comment = instance["docstring"]
+        url = instance["url"]
 
         code = self.tokenizer(code, truncation=True, return_tensors='pt', padding='max_length')
         comment = self.tokenizer(comment, truncation=True, return_tensors='pt', padding='max_length')
         code = squeeze_dict(code)
         comment = squeeze_dict(comment)
 
-        return code, comment
+        return code, comment, url
