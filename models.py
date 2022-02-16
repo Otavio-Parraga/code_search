@@ -2,12 +2,9 @@ import pytorch_lightning as pl
 from pathlib import Path
 import torch.optim as optim
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 from transformers import T5Model, RobertaTokenizer, AutoModel, AutoTokenizer
-from utils import cosine_sim
 
-# TODO: test without normalization
 
 mt_pairs = {'Salesforce/codet5-base': {'model': T5Model, 'tokenizer': RobertaTokenizer},
             'microsoft/codebert-base': {'model': AutoModel, 'tokenizer': AutoTokenizer},
@@ -37,7 +34,6 @@ class BertEncoder(nn.Module):
         )
 
         embedding = embedding[1]
-        embedding = F.normalize(embedding, p=2, dim=1)
         return embedding
 
 
@@ -51,9 +47,7 @@ class T5Encoder(nn.Module):
             input_ids=input_ids, attention_mask=attention_mask,
         )
 
-        # TODO: change this
-        embedding = torch.mean(embedding.last_hidden_state, dim=1)
-        embedding = F.normalize(embedding, p=2, dim=1)
+        embedding = embedding.last_hidden_state[:,0,:]
         return embedding
 
 
@@ -70,18 +64,17 @@ class CodeSearchModel(pl.LightningModule):
         return code, comment
 
     def training_step(self, batch, batch_idx):
-        code, comment, url = batch
+        code, comment, _ = batch
         encoded_code, encoded_comment = self(code, comment)
-        # TODO: tentar fazer como os autores do codebert, usando o einsum
-        scores = cosine_sim(encoded_code, encoded_comment)
+        scores = torch.einsum("ab,cb->ac", encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        code, comment, url = batch
+        code, comment, _ = batch
         encoded_code, encoded_comment = self(code, comment)
-        scores = cosine_sim(encoded_code, encoded_comment)
+        scores = torch.einsum("ab,cb->ac", encoded_code, encoded_comment)
         loss = self.criterion(scores, torch.arange(encoded_code.size(0), device=scores.device))
         self.log('val_loss', loss)
         return loss
