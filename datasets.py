@@ -1,4 +1,3 @@
-# TODO: read csn dataset
 import json
 from torch.utils.data import Dataset
 from utils import squeeze_dict
@@ -29,8 +28,8 @@ class CodeSearchNetDataset(Dataset):
         comment = instance["docstring"]
         url = instance["url"]
 
-        code = self.tokenizer(code, truncation=True, return_tensors='pt', padding='max_length')
-        comment = self.tokenizer(comment, truncation=True, return_tensors='pt', padding='max_length')
+        code = self.tokenizer(code, max_length=128, truncation=True, return_tensors='pt', padding='max_length')
+        comment = self.tokenizer(comment, max_length=128, truncation=True, return_tensors='pt', padding='max_length')
         code = squeeze_dict(code)
         comment = squeeze_dict(comment)
 
