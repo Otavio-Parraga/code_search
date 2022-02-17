@@ -79,6 +79,8 @@ class CodeSearchModel(pl.LightningModule):
         self.log('val_loss', loss)
         return loss
 
+    # TODO: step should change based on dataset size
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=5e-5)
-        return optimizer
+        optimizer = optim.Adam(self.parameters(), lr=2e-5)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+        return [optimizer], [scheduler]
