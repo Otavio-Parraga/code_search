@@ -18,6 +18,7 @@ def parse_args(mode='training'):
 def training_args(parser):
     parser.add_argument('-out', '--output_dir', type=str, default='checkpoints')
     parser.add_argument('--gpus', type=int, default=2)
+    parser.add_argument('-e', '--epochs', type=int, default=10)
     return parser.parse_args()
 
 def evaluation_args(parser):

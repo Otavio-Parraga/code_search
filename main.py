@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # creating trainer
     trainer = pl.Trainer(gpus=args.gpus,
-                         max_epochs=10,
+                         max_epochs=args.epochs,
                          gradient_clip_val=1,
                          strategy='ddp',
                          callbacks=[checkpoint_callback,
