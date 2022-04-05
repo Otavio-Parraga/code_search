@@ -1,11 +1,11 @@
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from utils import set_seed
+from models import CodeSearchModel, load_tokenizer
 from datasets import CodeSearchNetDataset
 from torch.utils.data import DataLoader
-from models import CodeSearchModel
 import pytorch_lightning as pl
-from pathlib import Path
 from args import parse_args
+from utils import set_seed
+from pathlib import Path
 
 if __name__ == '__main__':
     args = parse_args('training')
@@ -19,14 +19,17 @@ if __name__ == '__main__':
     output_dir = Path(args.output_dir) / language / ptm.replace('/', '-')
 
 
-    # creating model
-    model = CodeSearchModel(ptm, '../code2test/pretrained_stuff')
+    # creating tokenizer
+    tokenizer = load_tokenizer(ptm, '../code2test/pretrained_stuff')
 
     # creating dataset
-    train_dataset = CodeSearchNetDataset(data_dir / language / 'train.jsonl', model.tokenizer)
-    val_dataset = CodeSearchNetDataset(data_dir / language / 'valid.jsonl', model.tokenizer)
+    train_dataset = CodeSearchNetDataset(data_dir / language / 'train.jsonl', tokenizer)
+    val_dataset = CodeSearchNetDataset(data_dir / language / 'valid.jsonl', tokenizer)
     trainloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     valloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+
+    # creating model
+    model = CodeSearchModel(ptm, '../code2test/pretrained_stuff', train_size=len(trainloader), epochs=args.epochs)
 
     # callbacks
     checkpoint_callback = ModelCheckpoint(

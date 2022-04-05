@@ -5,3 +5,6 @@ lightning_logs/
 *__pycache__*
 __pycache__
 checkpoints
+pep_checkpoints
+pretrained_stuff
+test_optimizations
