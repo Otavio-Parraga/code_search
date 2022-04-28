@@ -29,7 +29,7 @@ if __name__ == '__main__':
     valloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
 
     # creating model
-    model = CodeSearchModel(ptm, '../code2test/pretrained_stuff', train_size=len(trainloader), epochs=args.epochs)
+    model = CodeSearchModel(ptm, '../code2test/pretrained_stuff', train_size=len(trainloader), epochs=args.epochs, scheduler=args.scheduler)
 
     # callbacks
     checkpoint_callback = ModelCheckpoint(

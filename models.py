@@ -3,7 +3,7 @@ from pathlib import Path
 import torch.optim as optim
 import torch.nn as nn
 import torch
-from transformers import T5Model, RobertaTokenizer, AutoModel, AutoTokenizer, get_linear_schedule_with_warmup
+from transformers import T5Model, RobertaTokenizer, AutoModel, AutoTokenizer, get_linear_schedule_with_warmup, get_cosine_schedule_with_warmup
 
 
 mt_pairs = {'Salesforce/codet5-base': {'model': T5Model, 'tokenizer': RobertaTokenizer},
@@ -61,13 +61,14 @@ class T5Encoder(nn.Module):
 
 
 class CodeSearchModel(pl.LightningModule):
-    def __init__(self, model_name, cache_path='./pretrained_stuff', train_size=None, epochs=None):
+    def __init__(self, model_name, cache_path='./pretrained_stuff', train_size=None, epochs=None, scheduler='step'):
         super(CodeSearchModel, self).__init__()
         model, self.tokenizer = load_model_and_tokenizer(model_name, cache_path)
         self.encoder = T5Encoder(model) if 't5' in model_name else BertEncoder(model)
         self.criterion = nn.CrossEntropyLoss()
         self.train_size = train_size
         self.epochs = epochs
+        self.scheduler = scheduler
 
     def forward(self, code, comment):
         code = self.encoder(**code)
@@ -92,8 +93,12 @@ class CodeSearchModel(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.Adam(self.parameters(), lr=2e-5)
-        if (self.train_size is not None) and (self.epochs is not None):
-            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=self.train_size*self.epochs)
-        else:
+        if self.scheduler == 'step':
             scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+        elif self.scheduler == 'linear':
+            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=self.train_size*self.epochs)
+        elif self.scheduler == 'cosine':
+            scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=self.train_size*self.epochs)
+        elif self.scheduler == 'plateau':
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
         return [optimizer], [scheduler]

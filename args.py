@@ -19,6 +19,7 @@ def training_args(parser):
     parser.add_argument('-out', '--output_dir', type=str, default='checkpoints')
     parser.add_argument('--gpus', type=int, default=2)
     parser.add_argument('-e', '--epochs', type=int, default=10)
+    parser.add_argument('-s', '--scheduler', type=str, default='step', choices=['step', 'plateau', 'linear', 'cosine'])
     return parser.parse_args()
 
 def evaluation_args(parser):
